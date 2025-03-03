@@ -50,10 +50,15 @@ npm run dev
 ### Sending Assets
 
 1. Connect your wallet by clicking the "Connect Wallet" button
+![Connect Wallet](flow_images/connect_wallet.png)
 2. Select an asset from the dropdown menu
+![Select Asset](flow_images/select_asset.png)
 3. Enter the amount you wish to send
 4. Enter the recipient's Algorand address
-5. Click "Send Asset"
+5. Click "Send Asset" & approve transactions in wallet.
+![Send Asset](flow_images/send_asset.png)
+6. Success Toast after successfully sending asset
+![After Sending Asset](flow_images/send_asset_after.png)
 
 The application will:
 - Verify if the recipient is already opted into the asset
