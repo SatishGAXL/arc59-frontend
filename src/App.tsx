@@ -88,12 +88,15 @@ const App = () => {
         activeNetwork
       );
       toast.success("Asset sent successfully");
-      window.location.reload();
     } catch (e: any) {
       console.log(e);
       toast.error(`Error sending asset: ${e.message}`);
     } finally {
       setIsSending("");
+      setUserAssets([]);
+      setAssetAmount(0);
+      setAssetReceiver("");
+      await getUserAssets(activeAccount.address);
     }
   };
 
