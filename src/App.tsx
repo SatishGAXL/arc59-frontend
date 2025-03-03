@@ -13,19 +13,22 @@ import {
 } from "./utils";
 import { AssetDetails } from "./interfaces";
 
+// Initialize Algorand client for testnet
 const algorandClient = algokit.AlgorandClient.testNet();
 
 const App = () => {
+  // Access wallet functionalities and account information
   const { wallets, activeAccount, transactionSigner, activeNetwork } =
     useWallet();
+  // State variables
   const [assetAmount, setAssetAmount] = useState(0);
   const [assetReceiver, setAssetReceiver] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [userAssets, setUserAssets] = useState<AssetDetails[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<AssetDetails>();
   const [isSending, setIsSending] = useState("");
 
+  // Function to get user assets
   async function getUserAssets(address: string) {
     let assets = await getAssetsInAddress(address);
     let finalAssets: AssetDetails[] = [];
@@ -40,6 +43,7 @@ const App = () => {
     return finalAssets;
   }
 
+  // useEffect hook to fetch user assets when the active account changes
   useEffect(() => {
     (async () => {
       let finalAssets: AssetDetails[] = [];
@@ -49,6 +53,7 @@ const App = () => {
     })();
   }, [activeAccount]);
 
+  // Function to send asset
   const sendAsset = async () => {
     if (!activeAccount) {
       toast.error("Please connect wallet");

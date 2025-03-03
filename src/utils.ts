@@ -5,10 +5,14 @@ import algosdk from "algosdk";
 import { Arc59Client } from "./contracts/Arc59Client";
 import { NetworkId } from "@txnlab/use-wallet-react";
 
+// Function to retrieve all assets held by a given address
 export const getAssetsInAddress = async (address: string) => {
+  // Initialize the indexer client
   const indexer = new Indexer(indexerToken, indexerUrl, indexerPort);
+  // Retrieve assets for the given address
   let assets = await indexer.lookupAccountAssets(address).do();
   let threshold = 1000;
+  // Handle pagination if the number of assets exceeds the threshold
   while (assets.assets.length === threshold && assets["next-token"]) {
     const nextToken = assets["next-token"];
     const nextResponse = await indexer
@@ -19,6 +23,7 @@ export const getAssetsInAddress = async (address: string) => {
     assets["next-token"] = nextResponse["next-token"];
     threshold += 1000;
   }
+  // Map the assets to the AssetHolding interface
   const filtered: AssetHolding[] = assets.assets.map((asset: any) => {
     return {
       assetId: asset["asset-id"],
@@ -29,11 +34,15 @@ export const getAssetsInAddress = async (address: string) => {
   return filtered;
 };
 
+// Function to retrieve details for a given asset
 export const getAssetDetails = async (
   asset: AssetHolding
 ): Promise<AssetDetails> => {
+  // Initialize the indexer client
   const indexer = new Indexer(indexerToken, indexerUrl, indexerPort);
+  // Retrieve asset details by asset ID
   const assetDetails = await indexer.lookupAssetByID(asset.assetId).do();
+  // Return the asset details
   return {
     assetId: asset.assetId,
     amount: asset.orgAmount / 10 ** assetDetails.asset.params.decimals,
@@ -44,12 +53,14 @@ export const getAssetDetails = async (
   };
 };
 
+// Function to encode a string to base64
 export const stringToBase64 = (input: string): string => {
   const encoder = new TextEncoder();
   const bytes = encoder.encode(input);
   return btoa(String.fromCharCode(...bytes));
 };
 
+// Function to decode a base64 string to a string
 export const base64ToString = (input: string): string => {
   const binary = atob(input);
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
@@ -57,6 +68,7 @@ export const base64ToString = (input: string): string => {
   return decoder.decode(bytes);
 };
 
+// Type definition for the sender
 type SenderType = {
   addr: string;
   signer: (
@@ -65,6 +77,7 @@ type SenderType = {
   ) => Promise<Uint8Array[]>;
 };
 
+// Function to create a group of transactions for ARC59
 export const createArc59GroupTxns = async (
   txn: { assetId: number; amount: number; receiver: string }[],
   sender: SenderType,
@@ -72,6 +85,7 @@ export const createArc59GroupTxns = async (
   activeNetwork: NetworkId
 ) => {
   try {
+    // Initialize the ARC59 client
     const appClient = new Arc59Client(
       {
         sender,
@@ -81,19 +95,26 @@ export const createArc59GroupTxns = async (
       algodClient
     );
 
+    // Define a simulated sender with an empty transaction signer
     const simSender = {
       addr: sender.addr,
       signer: algosdk.makeEmptyTransactionSigner(),
     };
+    // Define simulation parameters
     const simParams = {
       allowEmptySignatures: true,
       allowUnnamedResources: true,
       fixSigners: true,
     };
+    // Iterate over each transaction in the array
     for (let i = 0; i < txn.length; i++) {
+      // Get suggested transaction parameters
       const suggestedParams = await algodClient.getTransactionParams().do();
+      // Create a composer instance
       const composer = appClient.compose();
+      // Get the application address
       const appAddr = (await appClient.appClient.getAppReference()).appAddress;
+      // Get the receiver address
       const receiver = txn[i].receiver;
       console.log((
         await appClient
@@ -112,6 +133,7 @@ export const createArc59GroupTxns = async (
           )
           .simulate(simParams)
       ).returns)
+      // Get information about sending the asset using a simulation
       const [
         itxns,
         mbr,
